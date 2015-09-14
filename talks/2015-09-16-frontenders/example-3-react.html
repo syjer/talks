@@ -1,0 +1,71 @@
+<!doctype html>
+<body>
+
+  <div id="row">
+    <div id="app">
+      <h3>Sample app</h3>
+      <div id="ui"></div>
+      <small>(click word to delete)</small>
+    </div>
+    <div id="time-travel">
+      <h3>Time travel</h3>
+      <button id="back">Back</button>
+      <button id="next">Next</button>
+      <p id="time-pos"></p>
+    </div>
+  </div>
+
+  <script src="react.min.js"></script>
+  <script src="JSXTransformer.js"></script>
+  <script src="immutable.min.js"></script>
+  <script type="text/jsx">
+
+function getNextString() {
+    var words = 'The quick brown fox jumps over the lazy dog'.split(' ');
+    return words[Math.floor(Math.random() * words.length)];
+}
+
+var ListOWords = React.createClass({
+  getInitialState: function() {
+    var savedState = sessionStorage.getItem('ListOWordsState');
+    return {data: Immutable.fromJS(savedState ? JSON.parse(savedState) : {items: ['dog', 'jumps']})};
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    sessionStorage.setItem('ListOWordsState', JSON.stringify(this.state.data.toJS()));
+  },
+  addWord: function() {
+    this.setState({data: this.state.data.update('items', list => list.push(getNextString()))});
+  },
+  deleteWord: function(indexToRemove) {
+    this.setState({data: this.state.data.update('items', list => list.delete(indexToRemove))});
+  },
+  render: function() {
+    var self = this;
+    var wordsElements = this.state.data.get('items').map(function (word, idx) {
+      return (
+        <li onClick={self.deleteWord.bind(self, idx)}>
+          {word}
+        </li>
+      );
+    });
+    return (
+      <div>
+        <button onClick={this.addWord}>Add word</button>
+        <ul>
+          {wordsElements}
+        </ul>
+      </div>
+    );
+  }
+});
+React.render(
+  <ListOWords/>,
+  document.getElementById('ui')
+);
+
+  </script>
+  
+  <hr>
+  
+  <p>example 5 from the article <a href="http://hackflow.com/blog/2015/03/08/boiling-react-down-to-few-lines-in-jquery/">"Boiling React Down to a Few Lines in jQuery"</a> by Alexander Schepanovski</p>
+</body>

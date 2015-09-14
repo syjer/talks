@@ -45,7 +45,7 @@ function updateTimeUI() {
 }
 
 function saveState() {
-    localStorage.setItem('state', JSON.stringify(state));
+    sessionStorage.setItem('state', JSON.stringify(state));
     
     time = time || {history: [], pos: -1};
     // delete alternate future history
@@ -54,7 +54,7 @@ function saveState() {
     time.history.push(deepCopy(state));
     time.pos++;
     
-    localStorage.setItem('time', JSON.stringify(time));
+    sessionStorage.setItem('time', JSON.stringify(time));
     
     updateTimeUI();
 }
@@ -99,12 +99,12 @@ function deepCopy(obj) {
 // on load
 $(function() {
   //load state
-  var savedState = localStorage.getItem('state');
+  var savedState = sessionStorage.getItem('state');
   if(savedState) {
     state = JSON.parse(savedState);
   }
   //load time
-  var savedTime = localStorage.getItem('time');
+  var savedTime = sessionStorage.getItem('time');
   if(savedTime) {
     time = JSON.parse(savedTime);
   }

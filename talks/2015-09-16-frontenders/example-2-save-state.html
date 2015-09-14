@@ -24,7 +24,7 @@ function render(state) {
 }
 
 function saveState() {
-  localStorage.setItem('state', JSON.stringify(state));
+  sessionStorage.setItem('state', JSON.stringify(state));
 }
 
 function updateUI(loading) {
@@ -51,7 +51,7 @@ function getNextString() {
 // on load
 $(function() {
   //load state
-  var savedState = localStorage.getItem('state');
+  var savedState = sessionStorage.getItem('state');
   if(savedState) {
     state = JSON.parse(savedState);
   }
