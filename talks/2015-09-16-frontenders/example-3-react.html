@@ -26,25 +26,30 @@ function getNextString() {
     return words[Math.floor(Math.random() * words.length)];
 }
 
+var initialState = {items: ['dog', 'jumps']};
+
 var ListOWords = React.createClass({
   getInitialState: function() {
     var savedState = sessionStorage.getItem('ListOWordsState');
-    return {data: Immutable.fromJS(savedState ? JSON.parse(savedState) : {items: ['dog', 'jumps']})};
+    return {data: Immutable.fromJS(savedState ? JSON.parse(savedState) : initialState)};
   },
   componentDidUpdate: function(prevProps, prevState) {
     sessionStorage.setItem('ListOWordsState', JSON.stringify(this.state.data.toJS()));
-    this.props.eventBus.emit("stateUpdate", this.state.data);
   },
   componentDidMount : function() {
     //subscribe to the event bus
     var self = this;
-    this.props.eventBus.on("setState", state => self.setState(state));
+    this.props.eventBus.on("setState", state => self.setState({data: state}));
   },
   addWord: function() {
-    this.setState({data: this.state.data.update('items', list => list.push(getNextString()))});
+    var newState = this.state.data.update('items', list => list.push(getNextString()));
+    this.props.eventBus.emit("stateUpdate", newState);
+    this.setState({data: newState});
   },
   deleteWord: function(indexToRemove) {
-    this.setState({data: this.state.data.update('items', list => list.delete(indexToRemove))});
+    var newState = this.state.data.update('items', list => list.delete(indexToRemove));
+    this.props.eventBus.emit("stateUpdate", newState);
+    this.setState({data: newState});
   },
   render: function() {
     var self = this;
@@ -68,13 +73,43 @@ var ListOWords = React.createClass({
 });
 
 var TimeTravel = React.createClass({
+  getInitialState: function() {
+    var savedState = sessionStorage.getItem('TimeTravelState');
+    return {data: Immutable.fromJS(savedState ? JSON.parse(savedState) : {history: [initialState], pos: 1})};
+  },
+  componentDidUpdate: function(prevProps, prevState) {
+    sessionStorage.setItem('TimeTravelState', JSON.stringify(this.state.data.toJS()));
+  },
+  componentDidMount : function() {
+    var self = this;
+    this.props.eventBus.on("stateUpdate", function(state) {
+      var updatedHistory = self.state.data.update('history', list => list.push(state));
+      var updatedPos = updatedHistory.update('pos', pos => updatedHistory.get('history').size);
+      self.setState({data: updatedPos});
+    });
+  },
+  
+  back: function() {
+    var updatedPos = this.state.data.update('pos', pos => pos-1);
+    var newPos = updatedPos.get('pos');
+    this.props.eventBus.emit("setState", updatedPos.get('history').get(newPos - 1));
+    this.setState({data : updatedPos});
+  },
+  next: function() {
+    var updatedPos = this.state.data.update('pos', pos => pos+1);
+    var newPos = updatedPos.get('pos');
+    this.props.eventBus.emit("setState", updatedPos.get('history').get(newPos - 1));
+    this.setState({data : updatedPos});
+  },
   render: function() {
+    var position = this.state.data.get('pos');
+    var historySize = this.state.data.get('history').size;
     return (
       <div>
         <h3>Time travel</h3>
-        <button>Back</button><span> </span>
-        <button>Next</button>
-        <p></p>
+        <button disabled={position <= 1} onClick={this.back}>Back</button><span> </span>
+        <button disabled={position >= historySize} onClick={this.next}>Next</button>
+        <p>Position  {position} of {historySize}</p>
       </div>
     );
   }
