@@ -1,0 +1,67 @@
+<!doctype html>
+<body>
+
+  <div id="row">
+    <div id="app">
+      <h3>Sample app</h3>
+      <button id="add">Add word</button>
+      <div id="ui"></div>
+      <small>(click word to delete)</small>
+    </div>
+  </div>
+
+  <script src="jquery-2.1.4.min.js"></script>
+  <script>
+  // Our app
+var state = {items: ['dog', 'jumps']};
+
+function render(state) {
+    var span = '<span id="count">Words: ' + state.items.length + '</span>';
+    var lis = state.items.map(function (item) {
+        return '<li>' + item + '</li>';
+    });
+    return span + '<ul>' + lis.join('') + '</ul>';
+}
+
+function saveState() {
+  localStorage.setItem('state', JSON.stringify(state));
+}
+
+function updateUI(loading) {
+    if (!loading) saveState();
+    $('#ui').html(render(state));
+}
+
+// app events
+$('#ui').on('click', 'li', function () {
+    state.items.splice($(this).index(), 1);
+    updateUI();
+});
+
+$('#add').on('click', function () {
+    state.items.push(getNextString());
+    updateUI();
+});
+
+function getNextString() {
+    var words = 'The quick brown fox jumps over the lazy dog'.split(' ');
+    return words[Math.floor(Math.random() * words.length)];
+}
+
+// on load
+$(function() {
+  //load state
+  var savedState = localStorage.getItem('state');
+  if(savedState) {
+    state = JSON.parse(savedState);
+  }
+  //update the ui
+  updateUI(false);
+});
+
+  </script>
+  
+  <hr>
+  
+  <p>example 3 from the article <a href="http://hackflow.com/blog/2015/03/08/boiling-react-down-to-few-lines-in-jquery/">"Boiling React Down to a Few Lines in jQuery"</a> by Alexander Schepanovski</p>
+</body>

@@ -1,0 +1,37 @@
+<!doctype html>
+<body>
+
+  <p>
+    Colored counter: <span id="colored-counter">0</span>
+  </p>
+  <p>
+    Set color: <input id="color"></input>
+  </p>
+  <p>
+    Increment counter: <button id="inc">Increment</button>
+  </p>
+
+  <script src="jquery-2.1.4.min.js"></script>
+  <script>
+  var state = {color: '', value: 0};
+
+  function updateUI() {
+      $('#colored-counter').css('color', state.color);
+      $('#colored-counter').html(state.value);
+  }
+
+  $('#color').on('keyup', function () {
+      state.color = this.value;
+      updateUI();
+  })
+
+  $('#inc').on('click', function () {
+      state.value++;
+      updateUI();
+  })
+  </script>
+  
+  <hr>
+  
+  <p>example 2 from the article <a href="http://hackflow.com/blog/2015/03/08/boiling-react-down-to-few-lines-in-jquery/">"Boiling React Down to a Few Lines in jQuery"</a> by Alexander Schepanovski</p>
+</body>

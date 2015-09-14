@@ -1,0 +1,122 @@
+<!doctype html>
+<body>
+
+  <div id="row">
+    <div id="app">
+      <h3>Sample app</h3>
+      <button id="add">Add word</button>
+      <div id="ui"></div>
+      <small>(click word to delete)</small>
+    </div>
+    <div id="time-travel">
+      <h3>Time travel</h3>
+      <button id="back">Back</button>
+      <button id="next">Next</button>
+      <p id="time-pos"></p>
+    </div>
+  </div>
+
+  <script src="jquery-2.1.4.min.js"></script>
+  <script>
+  // Our app
+var state = {items: ['dog', 'jumps']};
+
+function render(state) {
+    var span = '<span id="count">Words: ' + state.items.length + '</span>';
+    var lis = state.items.map(function (item) {
+        return '<li>' + item + '</li>';
+    });
+    return span + '<ul>' + lis.join('') + '</ul>';
+}
+
+function updateUI(loading) {
+    if (!loading) saveState();
+    $('#ui').html(render(state));
+}
+
+
+// Time travel
+var time;
+
+function updateTimeUI() {
+    $('#time-pos').html('Position ' + (time.pos + 1) + ' of ' + time.history.length);
+    $('#back').prop('disabled', time.pos <= 0);
+    $('#next').prop('disabled', time.pos >= time.history.length - 1);
+}
+
+function saveState() {
+    localStorage.setItem('state', JSON.stringify(state));
+    
+    time = time || {history: [], pos: -1};
+    // delete alternate future history
+    time.history.splice(time.pos+1);
+    // push state to history
+    time.history.push(deepCopy(state));
+    time.pos++;
+    
+    localStorage.setItem('time', JSON.stringify(time));
+    
+    updateTimeUI();
+}
+
+// app events
+$('#ui').on('click', 'li', function () {
+    state.items.splice($(this).index(), 1);
+    updateUI();
+});
+
+$('#add').on('click', function () {
+    state.items.push(getNextString());
+    updateUI();
+});
+
+$('#back').on('click', function () {
+    // Move history pointer
+    time.pos--;
+    updateTimeUI();
+    // Load historic state
+    state = deepCopy(time.history[time.pos]);
+    updateUI(true);
+});
+$('#next').on('click', function () {
+    // Move history pointer
+    time.pos++;
+    updateTimeUI();
+    // Load historic state
+    state = deepCopy(time.history[time.pos]);
+    updateUI(true);
+});
+
+function getNextString() {
+    var words = 'The quick brown fox jumps over the lazy dog'.split(' ');
+    return words[Math.floor(Math.random() * words.length)];
+}
+
+function deepCopy(obj) {
+  return $.extend(true, {}, obj);
+}
+
+// on load
+$(function() {
+  //load state
+  var savedState = localStorage.getItem('state');
+  if(savedState) {
+    state = JSON.parse(savedState);
+  }
+  //load time
+  var savedTime = localStorage.getItem('time');
+  if(savedTime) {
+    time = JSON.parse(savedTime);
+  }
+  
+  //update the ui
+  updateUI(false);
+  updateTimeUI();
+});
+
+  </script>
+  
+  <hr>
+  
+  <p>example 4 from the article <a href="http://hackflow.com/blog/2015/03/08/boiling-react-down-to-few-lines-in-jquery/">"Boiling React Down to a Few Lines in jQuery"</a> by Alexander Schepanovski</p>
+</body>
