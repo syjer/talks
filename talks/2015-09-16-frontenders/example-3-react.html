@@ -8,17 +8,18 @@
       <small>(click word to delete)</small>
     </div>
     <div id="time-travel">
-      <h3>Time travel</h3>
-      <button id="back">Back</button>
-      <button id="next">Next</button>
-      <p id="time-pos"></p>
+      
     </div>
   </div>
 
   <script src="react.min.js"></script>
   <script src="JSXTransformer.js"></script>
   <script src="immutable.min.js"></script>
+  <script src="EventEmitter.min.js"></script>
   <script type="text/jsx">
+  
+  
+var eventBus = new EventEmitter()
 
 function getNextString() {
     var words = 'The quick brown fox jumps over the lazy dog'.split(' ');
@@ -32,6 +33,12 @@ var ListOWords = React.createClass({
   },
   componentDidUpdate: function(prevProps, prevState) {
     sessionStorage.setItem('ListOWordsState', JSON.stringify(this.state.data.toJS()));
+    this.props.eventBus.emit("stateUpdate", this.state.data);
+  },
+  componentDidMount : function() {
+    //subscribe to the event bus
+    var self = this;
+    this.props.eventBus.on("setState", state => self.setState(state));
   },
   addWord: function() {
     this.setState({data: this.state.data.update('items', list => list.push(getNextString()))});
@@ -51,6 +58,7 @@ var ListOWords = React.createClass({
     return (
       <div>
         <button onClick={this.addWord}>Add word</button>
+        <div>Words: {this.state.data.get('items').size}</div>
         <ul>
           {wordsElements}
         </ul>
@@ -58,10 +66,30 @@ var ListOWords = React.createClass({
     );
   }
 });
+
+var TimeTravel = React.createClass({
+  render: function() {
+    return (
+      <div>
+        <h3>Time travel</h3>
+        <button>Back</button><span> </span>
+        <button>Next</button>
+        <p></p>
+      </div>
+    );
+  }
+});
+
 React.render(
-  <ListOWords/>,
+  <ListOWords eventBus={eventBus}/>,
   document.getElementById('ui')
 );
+
+React.render(
+  <TimeTravel eventBus={eventBus}/>,
+  document.getElementById('time-travel')
+);
+
 
   </script>
   
